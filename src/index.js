@@ -4,6 +4,11 @@ const express = require('express');
 const morgan = require('morgan');
 const exphbs = require('express-handlebars');
 const path = require('path');
+const flash = require('connect-flash');
+const session = require('express-session');
+const MySqlStore = require('express-mysql-session');
+
+const { database } = require('./keys');
 
 // Inicializaciones
 
@@ -21,18 +26,27 @@ app.engine('.hbs', exphbs({
 }))
 app.set('view engine', '.hbs');
 
+
+
+// Middleware
+app.use(session({
+  secret: 'texto',
+  resave: false,
+  saveUninitialized: false,
+  store: new MySqlStore(database)
+}));
+app.use(flash());
+app.use(morgan('dev'));
 app.use(express.urlencoded({extended: false})) // para los datos de los formularios
 app.use(express.json());
 
-// Middleware
-
-app.use(morgan('dev'));
 
 // Global variables
 app.use((req, res, next) =>{
-
+    app.locals.success = req.flash('success');
     next();
 })
+
 
 // Routes
 
